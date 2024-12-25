@@ -1,4 +1,4 @@
-##Ex2- spreadsheet project:
+**Ex2- spreadsheet project:**
 
 ## Overview
 The spreadsheet is designed as a 2D grid of Cells, where each cell can hold one of the following:
