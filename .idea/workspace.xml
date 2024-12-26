@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="81e36340-88fa-4471-9c16-836ef97b76ef" name="Changes" comment="first commit">
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+    <list default="true" id="81e36340-88fa-4471-9c16-836ef97b76ef" name="Changes" comment=" 2">
+      <change afterPath="$PROJECT_DIR$/src/spreadsheet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/testCell.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/cell.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +24,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 8
@@ -58,7 +64,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1735084479645</updated>
-      <workItem from="1735084480663" duration="1732000" />
+      <workItem from="1735084480663" duration="4807000" />
     </task>
     <task id="LOCAL-00001" summary="first commit">
       <option name="closed" value="true" />
@@ -68,7 +74,23 @@
       <option name="project" value="LOCAL" />
       <updated>1735084825327</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="hi">
+      <option name="closed" value="true" />
+      <created>1735086246311</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1735086246311</updated>
+    </task>
+    <task id="LOCAL-00003" summary=" 2">
+      <option name="closed" value="true" />
+      <created>1735086343682</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1735086343682</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -76,7 +98,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="first commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="first commit" />
+    <MESSAGE value="hi" />
+    <MESSAGE value=" 2" />
+    <option name="LAST_COMMIT_MESSAGE" value=" 2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
