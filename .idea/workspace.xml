@@ -4,11 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="81e36340-88fa-4471-9c16-836ef97b76ef" name="Changes" comment=" 2">
-      <change afterPath="$PROJECT_DIR$/src/spreadsheet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/testCell.java" afterDir="false" />
+    <list default="true" id="81e36340-88fa-4471-9c16-836ef97b76ef" name="Changes" comment="added the cell class">
+      <change afterPath="$PROJECT_DIR$/src/Cell.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/CellEntry.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Ex2GUI.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Ex2Sheet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Ex2Sol_obf (3).jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Ex2Utils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Index2D.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/SCell.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Sheet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/StdDrawEx2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/cell.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cell.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/testCell.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,9 +37,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="2qgW0se0qk4qneWv9TM1nsEDaq4" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -41,11 +50,14 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.Ex2GUI.executor": "Run",
     "Application.Main.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/ARIEL LEARN/JAVA/Ex2/src",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -56,6 +68,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\ARIEL LEARN\JAVA\Ex2\src" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -64,7 +81,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1735084479645</updated>
-      <workItem from="1735084480663" duration="4807000" />
+      <workItem from="1735084480663" duration="6141000" />
+      <workItem from="1735843142708" duration="1264000" />
     </task>
     <task id="LOCAL-00001" summary="first commit">
       <option name="closed" value="true" />
@@ -90,7 +108,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735086343682</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="added the cell class">
+      <option name="closed" value="true" />
+      <created>1735231778089</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1735231778089</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -100,7 +126,8 @@
     <MESSAGE value="first commit" />
     <MESSAGE value="hi" />
     <MESSAGE value=" 2" />
-    <option name="LAST_COMMIT_MESSAGE" value=" 2" />
+    <MESSAGE value="added the cell class" />
+    <option name="LAST_COMMIT_MESSAGE" value="added the cell class" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
