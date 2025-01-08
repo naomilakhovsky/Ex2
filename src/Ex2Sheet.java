@@ -26,11 +26,26 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public String value(int x, int y) {
-        if (isIn(x, y)) {
-            return table[x][y].toString();
+        if (!isIn(x, y)) {
+            return Ex2Utils.EMPTY_CELL;
         }
-        return Ex2Utils.EMPTY_CELL;
+        // Safely cast to SCell
+        SCell cell = (SCell) table[x][y];
+
+        // If it's a formula => compute it and return the numeric result
+        if (cell.getType() == Ex2Utils.FORM) {
+            try {
+                double result = cell.computeForm(cell.getData(), this);
+                return String.format("%.1f", result);
+            } catch (Exception e) {
+                // Something like invalid reference or parse error
+                return Ex2Utils.ERR_FORM;
+            }
+        }
+        // If numeric or text => just use the existing toString() logic
+        return cell.toString();
     }
+
 
     @Override
     public Cell get(int x, int y) {
@@ -40,42 +55,38 @@ public class Ex2Sheet implements Sheet {
         return null;
     }
 
+
     @Override
     public Cell get(String cords) {
         if (cords == null || cords.length() < 2) {
-            return null; // Invalid input
+            return null; // invalid input
         }
-
-        // Extract column and row
+        // 1) Extract column letter (e.g., "A") + row string (e.g., "0")
         String column = cords.substring(0, 1).toUpperCase();
-        String row = cords.substring(1);
+        String rowStr = cords.substring(1);
 
-        // Convert column to index
+        // 2) Convert column to x index
         int x = -1;
         for (int i = 0; i < Ex2Utils.ABC.length; i++) {
-            if (Ex2Utils.ABC[i].equals(column)) {
+            if (Ex2Utils.ABC[i].equalsIgnoreCase(column)) {
                 x = i;
                 break;
             }
         }
+        if (x == -1) return null; // invalid column
 
-        if (x == -1) {
-            return null; // Invalid column
-        }
-
-        // Convert row to index
+        // 3) Convert row to y index (NO "-1" ANYMORE!)
         int y;
         try {
-            y = Integer.parseInt(row);
+            y = Integer.parseInt(rowStr); // "0" -> 0, "1" -> 1, etc.
         } catch (NumberFormatException e) {
-            return null; // Invalid row
+            return null;
         }
 
-        // Ensure coordinates are within bounds
-        if (!isIn(x, y)) {
-            return null; // Out-of-bounds coordinates
-        }
+        // 4) Check bounds
+        if (!isIn(x, y)) return null;
 
+        // 5) Return that cell
         return get(x, y);
     }
 
@@ -99,6 +110,7 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void eval() {
+        // Evaluate all cells in the spreadsheet
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < height(); y++) {
                 eval(x, y);
@@ -108,7 +120,7 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public boolean isIn(int xx, int yy) {
-        return xx >= 0 && xx < width() && yy >= 0 && yy < height(); // Check if coordinates are in bounds
+        return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
 
     @Override
@@ -122,18 +134,20 @@ public class Ex2Sheet implements Sheet {
         return ans;
     }
 
-    private int calculateDepth(int x, int y, boolean[][] visited) {
+    public int calculateDepth(int x, int y, boolean[][] visited) {
         if (!isIn(x, y) || visited[x][y]) {
-            return Ex2Utils.ERR; // Circular dependency detected
+            return Ex2Utils.ERR; // circular or invalid
         }
-
         visited[x][y] = true;
         SCell cell = (SCell) get(x, y);
 
+        // Non-formula => depth=0
         if (cell.getType() != Ex2Utils.FORM) {
-            return 0; // Non-formula cells have depth 0
+            visited[x][y] = false;
+            return 0;
         }
 
+        // For formula => 1 + max depth(dependencies)
         int maxDepth = 0;
         for (Index2D dependency : extractDependencies(cell.getData())) {
             int depX = dependency.getX();
@@ -141,7 +155,8 @@ public class Ex2Sheet implements Sheet {
             if (isIn(depX, depY)) {
                 int depDepth = calculateDepth(depX, depY, visited);
                 if (depDepth == Ex2Utils.ERR) {
-                    return Ex2Utils.ERR; // Circular dependency
+                    visited[x][y] = false;
+                    return Ex2Utils.ERR;
                 }
                 maxDepth = Math.max(maxDepth, depDepth);
             }
@@ -150,68 +165,63 @@ public class Ex2Sheet implements Sheet {
         return 1 + maxDepth;
     }
 
-
-    private List<Index2D> extractDependencies(String formula) {
+    public List<Index2D> extractDependencies(String formula) {
         List<Index2D> dependencies = new ArrayList<>();
-
-        // Split the formula into potential cell references
-        for (String token : formula.split("[^A-Za-z0-9]+")) {
-            if (token.matches("[A-Z][0-9]+")) { // Match valid cell references like A1, B2
-                // Extract column letter and row number
-                String column = token.substring(0, 1);
+        // remove '=' for simpler splitting
+        String expr = formula.startsWith("=") ? formula.substring(1) : formula;
+        for (String token : expr.split("[^A-Za-z0-9]+")) {
+            if (token.matches("[A-Z][0-9]+")) {
+                String col = token.substring(0, 1);
                 String row = token.substring(1);
-
-                // Convert column to index
-                int x = columnToIndex(column);
+                int x = columnToIndex(col);
                 int y;
-
                 try {
-                    y = Integer.parseInt(row); // Convert row to an integer
+                    y = Integer.parseInt(row);
                 } catch (NumberFormatException e) {
-                    continue; // Skip invalid rows
+                    continue;
                 }
-
-                if (x >= 0 && y >= 0) { // Valid indices
-                    dependencies.add(new CellEntry(x, y)); // Add dependency as an Index2D
+                if (x >= 0 && y >= 0) {
+                    dependencies.add(new CellEntry(x, y));
                 }
             }
         }
-
         return dependencies;
     }
 
-    private int columnToIndex(String column) {
+    public int columnToIndex(String column) {
         for (int i = 0; i < Ex2Utils.ABC.length; i++) {
             if (Ex2Utils.ABC[i].equalsIgnoreCase(column)) {
-                return i; // Return the index of the column
+                return i;
             }
         }
-        return -1; // Return -1 if the column is not found
+        return -1;
     }
-
 
     @Override
     public void load(String fileName) throws IOException {
-        // Add implementation for loading spreadsheet from file
+        // Implementation not shown
     }
 
     @Override
     public void save(String fileName) throws IOException {
-        // Add implementation for saving spreadsheet to file
+        // Implementation not shown
     }
 
     @Override
     public String eval(int x, int y) {
         if (!isIn(x, y)) return Ex2Utils.EMPTY_CELL;
-
         SCell cell = (SCell) get(x, y);
+
+        // If it's a formula, try to compute
         if (cell.getType() == Ex2Utils.FORM) {
             try {
-                return String.valueOf(cell.computeForm(cell.getData()));
+                double result = cell.computeForm(cell.getData(), this);
+                return String.valueOf(result);
             } catch (Exception e) {
-                return Ex2Utils.ERR_FORM;
+                return Ex2Utils.ERR_FORM; // e.g. invalid reference
             }
         }
+        // else: numeric or text
         return cell.toString();
     }
 }
