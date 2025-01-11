@@ -1,4 +1,4 @@
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,21 +29,26 @@ public class Ex2Sheet implements Sheet {
         if (!isIn(x, y)) {
             return Ex2Utils.EMPTY_CELL;
         }
-        // Safely cast to SCell
         SCell cell = (SCell) table[x][y];
-
-        // If it's a formula => compute it and return the numeric result
-        if (cell.getType() == Ex2Utils.FORM) {
-            try {
-                double result = cell.computeForm(cell.getData(), this);
-                return String.format("%.1f", result);
-            } catch (Exception e) {
-                // Something like invalid reference or parse error
+        switch (cell.getType()) {
+            case Ex2Utils.FORM:
+                // If formula => compute and return the numeric result if possible
+                try {
+                    double result = cell.computeForm(cell.getData(), this);
+                    return String.format("%.1f", result);
+                } catch (Exception e) {
+                    return Ex2Utils.ERR_FORM; // e.g., parse error or invalid ref
+                }
+            case Ex2Utils.ERR_FORM_FORMAT:
+                // If formula is recognized as invalid => show ERR_FORM
                 return Ex2Utils.ERR_FORM;
-            }
+            case Ex2Utils.ERR_CYCLE_FORM:
+                // If formula has a circular dependency => show ERR_CYCLE
+                return Ex2Utils.ERR_CYCLE;
+            default:
+                // For numeric or text cells => return toString()
+                return cell.toString();
         }
-        // If numeric or text => just use the existing toString() logic
-        return cell.toString();
     }
 
 
@@ -110,10 +115,20 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void eval() {
-        // Evaluate all cells in the spreadsheet
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < height(); y++) {
-                eval(x, y);
+                SCell cell = (SCell) table[x][y];
+                if (cell.getType() == Ex2Utils.FORM) {
+                    int depthResult = calculateDepth(x, y, new boolean[width()][height()]);
+                    if (depthResult == Ex2Utils.ERR) {
+                        // Mark formula as cycle
+                        cell.setType(Ex2Utils.ERR_CYCLE_FORM);
+                    } else {
+                        eval(x, y); // Normal evaluation
+                    }
+                } else {
+                    eval(x, y); // Evaluate numeric or text
+                }
             }
         }
     }
@@ -170,7 +185,7 @@ public class Ex2Sheet implements Sheet {
         // remove '=' for simpler splitting
         String expr = formula.startsWith("=") ? formula.substring(1) : formula;
         for (String token : expr.split("[^A-Za-z0-9]+")) {
-            if (token.matches("[A-Z][0-9]+")) {
+            if (token.matches("(?i)[A-Z][0-9]+")) {
                 String col = token.substring(0, 1);
                 String row = token.substring(1);
                 int x = columnToIndex(col);
@@ -199,20 +214,63 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void load(String fileName) throws IOException {
-        // Implementation not shown
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String line = br.readLine(); // Skip the header line
+
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length != 3) {
+                    throw new IOException("Invalid data format");
+                }
+
+                int x = Integer.parseInt(parts[0]);
+                int y = Integer.parseInt(parts[1]);
+                String cellData = parts[2];
+
+                if (table == null || x >= table.length || y >= table[0].length) {
+                    int newWidth = Math.max(table != null ? table.length : 0, x + 1);
+                    int newHeight = Math.max(table != null && table[0] != null ? table[0].length : 0, y + 1);
+                    SCell[][] newTable = new SCell[newWidth][newHeight];
+
+                    if (table != null) {
+                        for (int i = 0; i < table.length; i++) {
+                            System.arraycopy(table[i], 0, newTable[i], 0, table[i].length);
+                        }
+                    }
+
+                    table = newTable;
+                }
+
+                table[x][y] = new SCell(cellData);
+            }
+
+            eval();
+        }
     }
 
     @Override
     public void save(String fileName) throws IOException {
-        // Implementation not shown
+        try (PrintWriter pw = new PrintWriter(new FileWriter(fileName))) {
+            pw.println("I2CS ArielU: SpreadSheet (Ex2) assignment: ");
+
+            for (int x = 0; x < table.length; x++) {
+                for (int y = 0; y < table[x].length; y++) {
+                    SCell cell = (SCell) table[x][y];
+                    if (cell != null && !cell.getData().isEmpty()) {
+                        pw.println(x + "," + y + "," + cell.getData().replace(",", ";"));
+                    }
+                }
+            }
+        }
     }
+
 
     @Override
     public String eval(int x, int y) {
         if (!isIn(x, y)) return Ex2Utils.EMPTY_CELL;
         SCell cell = (SCell) get(x, y);
 
-        // If it's a formula, try to compute
+        // If it's a formula, compute
         if (cell.getType() == Ex2Utils.FORM) {
             try {
                 double result = cell.computeForm(cell.getData(), this);

@@ -40,7 +40,7 @@ public class CellEntry implements Index2D {
     @Override
     public String toString() {
         char column = (char) ('A' + x); // Convert x to column letter
-        int row = y + 1; // Convert y to 1-based index
+        int row = y ; // Convert y to 1-based index
         return column + String.valueOf(row);
     }
 }

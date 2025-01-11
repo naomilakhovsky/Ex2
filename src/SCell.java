@@ -158,7 +158,7 @@ public class SCell implements Cell {
         String substring = formula.substring(startIndex);
 
         // A valid cell reference starts with one or more letters followed by one or more digits
-        return substring.matches("^[A-Z]+[0-9]+.*");
+        return substring.matches("(?i)^[A-Z]+[0-9]+.*");
     }
 
     private int extractCellReferenceLength(String cellReference) {
@@ -234,7 +234,7 @@ public class SCell implements Cell {
         }
 
         // Resolve cell references
-        if (expression.matches("[A-Z][0-9]+")) {
+        if (expression.matches("(?i)[A-Z][0-9]+")) {
             return resolveCellValue(expression,sheet);
         }
 
