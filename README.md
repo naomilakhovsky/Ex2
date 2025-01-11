@@ -5,7 +5,7 @@ The spreadsheet is designed as a 2D grid of Cells, where each cell can hold one 
 - **Text**
 - **Number**
 - **Formula** (e.g., `=1+2` or `=A1+B2`)
-- 
+  
 - **Features**
 
 Cell Value Storage: Store numbers, text, and formulas in individual cells.
@@ -27,8 +27,9 @@ Manages the grid of cells and provides spreadsheet-level operations.
 - `String eval(int x, int y)` - Evaluates and returns the content of a cell.
 - `String[][] evalAll()` - Evaluates all cells in the spreadsheet.
 - `int[][] depth()` - Calculates computational depth for all cells.
-- 
-- here is an example of a spreadsheet:
+ 
+ here is an example of a spreadsheet:
+  
 ![image](https://github.com/user-attachments/assets/2e618e68-f4fa-4370-9795-4d4ed9be02fb)
 
 
