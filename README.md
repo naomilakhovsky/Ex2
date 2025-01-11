@@ -23,6 +23,8 @@ Manages the grid of cells and provides spreadsheet-level operations.
 - `String eval(int x, int y)` - Evaluates and returns the content of a cell.
 - `String[][] evalAll()` - Evaluates all cells in the spreadsheet.
 - `int[][] depth()` - Calculates computational depth for all cells.
+![image](https://github.com/user-attachments/assets/2e618e68-f4fa-4370-9795-4d4ed9be02fb)
+
 
 
 
