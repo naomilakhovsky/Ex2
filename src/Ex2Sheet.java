@@ -14,7 +14,7 @@ public class Ex2Sheet implements Sheet {
         table = new SCell[x][y];
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
-                table[i][j] = new SCell(""); // Initialize empty cells
+                table[i][j] = new SCell("");
             }
         }
         eval();
@@ -24,6 +24,14 @@ public class Ex2Sheet implements Sheet {
         this(Ex2Utils.WIDTH, Ex2Utils.HEIGHT); // Default dimensions
     }
 
+    /**
+     * Retrieves the computed value of a cell at the specified coordinates.
+     *
+     * @param x Column index of the cell.
+     * @param y Row index of the cell.
+     * @return The value of the cell as a string.
+     */
+
     @Override
     public String value(int x, int y) {
         if (!isIn(x, y)) {
@@ -32,7 +40,7 @@ public class Ex2Sheet implements Sheet {
         SCell cell = (SCell) table[x][y];
         switch (cell.getType()) {
             case Ex2Utils.FORM:
-                // If formula => compute and return the numeric result if possible
+                // If formula => compute and return the numeric result
                 try {
                     double result = cell.computeForm(cell.getData(), this);
                     return String.format("%.1f", result);
@@ -40,10 +48,10 @@ public class Ex2Sheet implements Sheet {
                     return Ex2Utils.ERR_FORM; // e.g., parse error or invalid ref
                 }
             case Ex2Utils.ERR_FORM_FORMAT:
-                // If formula is recognized as invalid => show ERR_FORM
+                // If formula is recognized as invalid show ERR_FORM
                 return Ex2Utils.ERR_FORM;
             case Ex2Utils.ERR_CYCLE_FORM:
-                // If formula has a circular dependency => show ERR_CYCLE
+                // If formula has a circular dependency show ERR_CYCLE
                 return Ex2Utils.ERR_CYCLE;
             default:
                 // For numeric or text cells => return toString()
@@ -59,18 +67,21 @@ public class Ex2Sheet implements Sheet {
         }
         return null;
     }
-
+    /**
+     * Retrieves the cell at the specified cell reference (e.g., "A0").
+     *
+     * @param cords The string representation of the cell's coordinates.
+     * @return The cell object, or null if the reference is invalid.
+     */
 
     @Override
     public Cell get(String cords) {
         if (cords == null || cords.length() < 2) {
             return null; // invalid input
         }
-        // 1) Extract column letter (e.g., "A") + row string (e.g., "0")
         String column = cords.substring(0, 1).toUpperCase();
         String rowStr = cords.substring(1);
 
-        // 2) Convert column to x index
         int x = -1;
         for (int i = 0; i < Ex2Utils.ABC.length; i++) {
             if (Ex2Utils.ABC[i].equalsIgnoreCase(column)) {
@@ -80,7 +91,6 @@ public class Ex2Sheet implements Sheet {
         }
         if (x == -1) return null; // invalid column
 
-        // 3) Convert row to y index (NO "-1" ANYMORE!)
         int y;
         try {
             y = Integer.parseInt(rowStr); // "0" -> 0, "1" -> 1, etc.
@@ -88,10 +98,8 @@ public class Ex2Sheet implements Sheet {
             return null;
         }
 
-        // 4) Check bounds
         if (!isIn(x, y)) return null;
 
-        // 5) Return that cell
         return get(x, y);
     }
 
@@ -105,6 +113,14 @@ public class Ex2Sheet implements Sheet {
         return table[0].length;
     }
 
+    /**
+     * Updates the value of a cell at the specified coordinates.
+     *
+     * @param x Column index of the cell.
+     * @param y Row index of the cell.
+     * @param s The new value to set in the cell.
+     */
+
     @Override
     public void set(int x, int y, String s) {
         if (isIn(x, y)) {
@@ -113,12 +129,18 @@ public class Ex2Sheet implements Sheet {
         }
     }
 
+    /**
+     * Evaluates all cells in the spreadsheet, resolving formulas and dependencies.
+     */
+
     @Override
     public void eval() {
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < height(); y++) {
                 SCell cell = (SCell) table[x][y];
+
                 if (cell.getType() == Ex2Utils.FORM) {
+
                     int depthResult = calculateDepth(x, y, new boolean[width()][height()]);
                     if (depthResult == Ex2Utils.ERR) {
                         // Mark formula as cycle
@@ -132,11 +154,24 @@ public class Ex2Sheet implements Sheet {
             }
         }
     }
+    /**
+     * Checks if the specified coordinates are within the spreadsheet bounds.
+     *
+     * @param xx Column index to check.
+     * @param yy Row index to check.
+     * @return True if the coordinates are within bounds, otherwise false.
+     */
 
     @Override
     public boolean isIn(int xx, int yy) {
         return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
+
+    /**
+     * Calculates the dependency depth of all cells in the spreadsheet.
+     *
+     * @return A 2D array representing the depth of each cell.
+     */
 
     @Override
     public int[][] depth() {
@@ -148,6 +183,15 @@ public class Ex2Sheet implements Sheet {
         }
         return ans;
     }
+
+    /**
+     * Recursively calculates the depth of a cell based on its dependencies.
+     *
+     * @param x       Column index of the cell.
+     * @param y       Row index of the cell.
+     * @param visited Tracks visited cells to prevent infinite recursion.
+     * @return The depth of the cell, or Ex2Utils.ERR for errors.
+     */
 
     public int calculateDepth(int x, int y, boolean[][] visited) {
         if (!isIn(x, y) || visited[x][y]) {
@@ -162,12 +206,22 @@ public class Ex2Sheet implements Sheet {
             return 0;
         }
 
+        if (cell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
+            visited[x][y] = false;
+            return Ex2Utils.ERR;
+        }
+
         // For formula => 1 + max depth(dependencies)
         int maxDepth = 0;
         for (Index2D dependency : extractDependencies(cell.getData())) {
             int depX = dependency.getX();
             int depY = dependency.getY();
             if (isIn(depX, depY)) {
+                SCell depCell = (SCell) get(depX, depY);
+                if (depCell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
+                    visited[x][y] = false;
+                    return Ex2Utils.ERR;
+                }
                 int depDepth = calculateDepth(depX, depY, visited);
                 if (depDepth == Ex2Utils.ERR) {
                     visited[x][y] = false;
@@ -179,6 +233,13 @@ public class Ex2Sheet implements Sheet {
         visited[x][y] = false;
         return 1 + maxDepth;
     }
+
+    /**
+     * Extracts all cell references from a formula.
+     *
+     * @param formula The formula string to analyze.
+     * @return A list of cell references found in the formula.
+     */
 
     public List<Index2D> extractDependencies(String formula) {
         List<Index2D> dependencies = new ArrayList<>();
@@ -202,6 +263,13 @@ public class Ex2Sheet implements Sheet {
         }
         return dependencies;
     }
+
+    /**
+     * Converts a column letter to its corresponding index.
+     *
+     * @param column The column letter (e.g., "A").
+     * @return The index of the column, or -1 if invalid.
+     */
 
     public int columnToIndex(String column) {
         for (int i = 0; i < Ex2Utils.ABC.length; i++) {
@@ -263,23 +331,27 @@ public class Ex2Sheet implements Sheet {
             }
         }
     }
-
+    /**
+     * Evaluates a specific cell and returns its value as a string.
+     *
+     * @param x The column index of the cell.
+     * @param y The row index of the cell.
+     * @return The evaluated value of the cell.
+     */
 
     @Override
     public String eval(int x, int y) {
         if (!isIn(x, y)) return Ex2Utils.EMPTY_CELL;
         SCell cell = (SCell) get(x, y);
 
-        // If it's a formula, compute
         if (cell.getType() == Ex2Utils.FORM) {
             try {
                 double result = cell.computeForm(cell.getData(), this);
                 return String.valueOf(result);
             } catch (Exception e) {
-                return Ex2Utils.ERR_FORM; // e.g. invalid reference
+                return Ex2Utils.ERR_FORM;
             }
         }
-        // else: numeric or text
         return cell.toString();
     }
 }

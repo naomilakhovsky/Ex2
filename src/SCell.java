@@ -6,7 +6,7 @@
 public class SCell implements Cell {
     private String line;
     private int type;
-    private int order;   // Order or depth used in dependency calculation
+    private int order;
 
     /**
      * Constructor to initialize the cell with data.
@@ -67,86 +67,87 @@ public class SCell implements Cell {
     public boolean validateFormula(String formula) {
         // Check if the formula starts with '='
         if (formula == null || formula.isEmpty() || !formula.startsWith("=")) {
-            return false; // A valid formula must start with '='
+            return false;
         }
 
-        // Remove the '=' prefix for further validation
         formula = formula.substring(1);
 
         if (formula.isEmpty()) {
-            return false; // After removing '=', the formula cannot be empty
+            return false;
         }
 
-        boolean expectOperand = true; // True if expecting an operand (number, cell reference, or '(')
-        int parenthesesBalance = 0;  // To track balanced parentheses
-        boolean lastCharWasDot = false; // To ensure dots are correctly placed
+        boolean expectOperand = true;
+        int parenthesesBalance = 0;
+        boolean lastCharWasDot = false;
 
         for (int i = 0; i < formula.length(); i++) {
             char c = formula.charAt(i);
 
-            // Check for cell references
             if (isCellReference(formula, i)) {
                 if (!expectOperand) {
-                    return false; // Invalid if a cell reference is not expected here
+                    return false;
                 }
 
-                // Skip the cell reference length
                 i += extractCellReferenceLength(formula.substring(i)) - 1;
-                expectOperand = false; // Operand found
-                lastCharWasDot = false; // Reset dot flag
+                expectOperand = false;
+                lastCharWasDot = false;
             }
             // Check for digits (numbers)
             else if (Character.isDigit(c)) {
                 if (!expectOperand) {
-                    return false; // Invalid if a number is not expected here
+                    return false;
                 }
 
-                // Process the entire number
                 while (i < formula.length() && (Character.isDigit(formula.charAt(i)) || formula.charAt(i) == '.')) {
                     if (formula.charAt(i) == '.') {
                         if (lastCharWasDot) {
-                            return false; // Invalid: consecutive dots
+                            return false;
                         }
-                        lastCharWasDot = true; // Set dot flag
+                        lastCharWasDot = true;
                     }
                     i++;
                 }
                 i--; // Adjust index after processing the number
-                expectOperand = false; // Operand found
-                lastCharWasDot = false; // Reset dot flag
+                expectOperand = false;
+                lastCharWasDot = false;
             }
             // Check for operators
-            else if (c == '+' || c == '-' || c == '*' || c == '/') {
-                if (expectOperand) {
-                    return false; // Invalid: operator without a preceding operand
+            else if (c == '+' || c == '-') {
+                if (expectOperand && (i == 0 || formula.charAt(i - 1) == '(')) {
+                    expectOperand = true;
+                } else if (!expectOperand) {
+                    expectOperand = true;
+                } else {
+                    return false;
                 }
-                expectOperand = true; // Expect an operand next
-                lastCharWasDot = false; // Reset dot flag
             }
-            // Check for opening parentheses
+            // Check for other operators
+            else if (c == '*' || c == '/') {
+                if (expectOperand) {
+                    return false;
+                }
+                expectOperand = true;
+                lastCharWasDot = false;
+            }
+
             else if (c == '(') {
                 parenthesesBalance++;
-                expectOperand = true; // Expect an operand inside parentheses
-                lastCharWasDot = false; // Reset dot flag
+                expectOperand = true;
+                lastCharWasDot = false;
             }
-            // Check for closing parentheses
             else if (c == ')') {
                 parenthesesBalance--;
                 if (parenthesesBalance < 0 || expectOperand) {
-                    return false; // Unmatched closing parenthesis or misplaced
+                    return false;
                 }
-                lastCharWasDot = false; // Reset dot flag
+                lastCharWasDot = false;
             }
             // Invalid character
             else {
-                return false; // Any other character is invalid
+                return false;
             }
         }
 
-        // Formula is valid if:
-        // - Parentheses are balanced
-        // - Does not end with an operator
-        // - Is not expecting another operand
         return parenthesesBalance == 0 && !expectOperand && !lastCharWasDot;
     }
 
@@ -157,9 +158,20 @@ public class SCell implements Cell {
     private boolean isCellReference(String formula, int startIndex) {
         String substring = formula.substring(startIndex);
 
+        if (startIndex > 0 && (formula.charAt(startIndex - 1) == '-' || formula.charAt(startIndex - 1) == '+')) {
+            startIndex--;
+        }
+
         // A valid cell reference starts with one or more letters followed by one or more digits
         return substring.matches("(?i)^[A-Z]+[0-9]+.*");
     }
+
+    /**
+     * Extracts the length of a valid cell reference from a formula.
+     *
+     * @param cellReference The substring containing the cell reference.
+     * @return The length of the cell reference.
+     */
 
     private int extractCellReferenceLength(String cellReference) {
         int length = 0;
@@ -185,7 +197,7 @@ public class SCell implements Cell {
             throw new IllegalArgumentException("Formula must start with '='");
         }
 
-        String expression = formula.substring(1); // Remove '=' prefix
+        String expression = formula.substring(1);
         double result = evaluateExpression(expression, sheet);
         return Double.parseDouble(String.format("%.1f", result)); // Format as double
 
@@ -198,7 +210,14 @@ public class SCell implements Cell {
      * @return The result of the evaluation.
      */
     private double evaluateExpression(String expression,Ex2Sheet sheet) {
-        expression = expression.replaceAll("\\s+", ""); // Remove whitespace
+        expression = expression.replaceAll("\\s+", "");
+
+        if (expression.startsWith("-")) {
+            return -evaluateExpression(expression.substring(1), sheet);
+        } else if (expression.startsWith("+")) {
+            return evaluateExpression(expression.substring(1), sheet);
+        }
+
 
         if (isNumber(expression)) {
             return Double.parseDouble(expression); // Base case: numeric value
@@ -269,7 +288,6 @@ public class SCell implements Cell {
             throw new IllegalArgumentException("Invalid column in ref: " + ref);
         }
 
-        // Convert the row part to y (NO -1)
         int y;
         try {
             y = Integer.parseInt(rowStr);
@@ -277,20 +295,16 @@ public class SCell implements Cell {
             throw new IllegalArgumentException("Invalid row in ref: " + ref);
         }
 
-        // 2) Check if (x, y) is in range
         if (!sheet.isIn(x, y)) {
             throw new IllegalArgumentException("Reference out of bounds: " + ref);
         }
 
-        // 3) Let the sheet evaluate the cell (x,y)
         String val = sheet.eval(x, y); // e.g., "5.0", "6.0", or "ERR_FORM!"
 
-        // 4) If "ERR_FORM!" => we can't parse it as double
         if (val.equals(Ex2Utils.ERR_FORM)) {
             throw new IllegalArgumentException("Invalid or non-numeric cell reference: " + ref);
         }
 
-        // 5) Otherwise parse the numeric result
         return Double.parseDouble(val);
     }
 
@@ -322,18 +336,29 @@ public class SCell implements Cell {
         return order;
     }
 
+    /**
+     * Converts the cell data to its string representation.
+     *
+     * @return The cell data as a string.
+     */
+
     @Override
     public String toString() {
         if (type == Ex2Utils.NUMBER) { // Check if the cell contains a number
             try {
                 double value = Double.parseDouble(getData());
-                return String.format("%.1f", value); // Format the number as a double (e.g., "5.0")
+                return String.format("%.1f", value);
             } catch (NumberFormatException e) {
-                return Ex2Utils.ERR_FORM; // Handle invalid numeric data gracefully
+                return Ex2Utils.ERR_FORM;
             }
         }
-        return getData(); // For non-numeric cells, return the raw data
+        return getData();
     }
+    /**
+     * Sets the raw data for the cell and determines its type.
+     *
+     * @param s The raw string data to set.
+     */
 
 
     @Override
@@ -342,7 +367,7 @@ public class SCell implements Cell {
         if (isNumber(line)) {
             double value = Double.parseDouble(line);
             type = Ex2Utils.NUMBER;
-            line = String.format("%.1f", value); // Store as double format
+            line = String.format("%.1f", value);
         } else if (isText(line)) {
             type = Ex2Utils.TEXT;
         } else if (isForm(line)) {

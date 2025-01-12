@@ -5,18 +5,16 @@ import static org.junit.jupiter.api.Assertions.*;
 class SCellTest {
 
     private int[] parseCellReference(String ref) {
-        // ref like "A1", "B2", etc.
-        // 1) Extract the column letter(s) and row number
+
         char colChar = ref.charAt(0);
-        String rowPart = ref.substring(1); // e.g. "1" for "A1"
+        String rowPart = ref.substring(1);
 
-        // 2) Convert column letter 'A'..'Z' -> 0..25 (simple version for 1-letter columns)
-        int x = colChar - 'A';  // 'A' => 0, 'B' => 1, etc.
 
-        // 3) Convert row string -> integer (NO subtracting 1 if you want "A1" => y=1)
+        int x = colChar - 'A';
+
+
         int y = Integer.parseInt(rowPart);
 
-        // So "A1" => (x=0, y=1), "B2" => (x=1, y=2), etc.
         return new int[] { x, y };
     }
 
@@ -79,7 +77,6 @@ class SCellTest {
     void computeForm() {
         Ex2Sheet sheet = new Ex2Sheet();
 
-        // Add sample data to the Ex2Sheet using x, y indices
         int[] a1 = parseCellReference("A1");
         sheet.set(a1[0], a1[1], "5");
 
@@ -125,14 +122,11 @@ class SCellTest {
     void getOrder() {
         SCell cell = new SCell("data");
 
-        // Initially, the order should be 0 (assuming it's the default value)
         assertEquals(0, cell.getOrder(), "Expected initial order to be 0.");
 
-        // Update the order using reflection (if `setOrder` isn't exposed)
         cell.setOrder(5);
         assertEquals(5, cell.getOrder(), "Expected order to be updated to 5.");
 
-        // Set another order and verify
         cell.setOrder(-2); // Test with negative value
         assertEquals(-2, cell.getOrder(), "Expected order to be updated to -2.");
 
@@ -142,18 +136,14 @@ class SCellTest {
     void testToString() {
         SCell cell = new SCell("Hello");
 
-        // Check that toString() matches the initial data
         assertEquals("Hello", cell.toString(), "Expected toString to return 'Hello'.");
 
-        // Update the data in the cell and verify
         cell.setData("123");
         assertEquals("123.0", cell.toString(), "Expected toString to return '123'.");
 
-        // Test with empty data
         cell.setData("");
         assertEquals("", cell.toString(), "Expected toString to return an empty string.");
 
-        // Test with special characters
         cell.setData("!@#$%^&*()");
         assertEquals("!@#$%^&*()", cell.toString(), "Expected toString to return '!@#$%^&*()'.");
     }
@@ -163,34 +153,27 @@ class SCellTest {
     void setData() {
         SCell cell = new SCell("");
 
-        // Test with a number
         cell.setData("123");
         assertEquals(Ex2Utils.NUMBER, cell.getType(), "Expected type to be NUMBER.");
 
 
-        // Test with a number
         cell.setData("5");
         assertEquals(Ex2Utils.NUMBER, cell.getType(), "Expected type to be NUMBER.");
 
 
-        // Test with text
         cell.setData("Hello");
         assertEquals(Ex2Utils.TEXT, cell.getType(), "Expected type to be TEXT.");
 
-        // Test with a formula
         cell.setData("=1+2");
         assertEquals(Ex2Utils.FORM, cell.getType(), "Expected type to be FORM.");
 
-        // Test valid formulas
         cell.setData("=A0+1");
         assertEquals(Ex2Utils.FORM, cell.getType(), "Expected type FORM for input '=A1+10'");
         assertEquals("=A0+1", cell.getData(), "Expected data '=A1+10' for input '=A1+10'");
 
-        // Test with invalid format
         cell.setData("123-abc");
         assertEquals(Ex2Utils.TEXT, cell.getType(), "Expected type to be ERR_FORM_FORMAT.");
 
-        // Test with trimmed input
         cell.setData("  456  ");
         assertEquals(Ex2Utils.NUMBER, cell.getType(), "Expected type to be NUMBER.");
 
@@ -203,14 +186,11 @@ class SCellTest {
     void getData() {
         SCell cell = new SCell("");
 
-        // Test empty data
         assertEquals("", cell.getData(), "Expected data to be an empty string.");
 
-        // Test with a number
         cell.setData("123");
         assertEquals("123.0", cell.getData(), "Expected data to be '123'.");
 
-        // Test with a formula
         cell.setData("=1+2");
         assertEquals("=1+2", cell.getData(), "Expected data to be '=1+2'.");
 
@@ -221,19 +201,15 @@ class SCellTest {
     void testSetAndGetType() {
         SCell cell = new SCell("");
 
-        // Set type to a valid value
         cell.setType(1);
         assertEquals(1, cell.getType(), "Expected type to be 1 after setting.");
 
-        // Set type to another valid value
         cell.setType(-1);
         assertEquals(-1, cell.getType(), "Expected type to be -1 after setting.");
 
-        // Set type to a large value
         cell.setType(100);
         assertEquals(100, cell.getType(), "Expected type to be 100 after setting.");
 
-        // Set type to a small negative value
         cell.setType(-100);
         assertEquals(-100, cell.getType(), "Expected type to be -100 after setting.");
     }
